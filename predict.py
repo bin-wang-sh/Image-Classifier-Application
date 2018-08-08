@@ -140,7 +140,6 @@ def display_predict(probs, classeidx, category_names):
     for c, p in zip(y_labels, probs):
         print("{}  : {:.3%}".format(c,p))
 def main():
-    #============test predict============
     in_args=predict_args()
     model = load_checkpoint(in_args.checkpoint)
     processed = process_image(in_args.image_path)

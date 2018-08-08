@@ -8,14 +8,13 @@ from torchvision import datasets,models,transforms
 import argparse
 from collections import OrderedDict
 def trian_args():
-    #https://www.cnblogs.com/lovemyspring/p/3214598.html
     parser = argparse.ArgumentParser( description='Get Train network parameters' )
     parser.add_argument('data_dir', default='flowers', type=str,
                      help = "Data source directory")
     parser.add_argument('--save_dir',default="checkpoint",type=str,
                      help="save directory")
     parser.add_argument('--arch', default="vgg16",type=str, dest='model_name',
-                     help="Select model")
+                     help="Select model: vgg19_bn, densenet121, vgg16")
     parser.add_argument('--learning_rate', default=0.001, type=float,
                      help="Learning rate")
     parser.add_argument('--hidden_units', default=512, type=int,
@@ -113,12 +112,12 @@ def validate_nn(model, testloader, criterion,gpu=False):
 
 def transform_data(data_dir='flowers'):
     '''
-      Input:
+      parameters:
          data_dir: input data directory ,default is 'flowers'
       return:
-         dataloaders
-         validloaders
-         testloaders
+         dataloaders : train  data  Loader
+         validloaders: validate data loader
+         testloaders: test data loader
     '''
     #Define data source.
     train_dir = data_dir + '/train'
@@ -181,7 +180,7 @@ def replace_classifier(model, model_name,hidden_units=4096):
     return:
         model ,models,  - Pretrained model with new classifier
     '''
-    #model_input_units={'vgg19_bn':2048, 'densenet121':1024, 'vgg16':25088}
+    #model_input_units={'vgg19_bn':25088, 'densenet121':1024, 'vgg16':25088}
     #input_units=model_input_units[model_name]
     input_units = model.classifier[0].in_features
     new_classifier = nn.Sequential(OrderedDict([
@@ -220,8 +219,6 @@ def save_checkpoint(model, model_name,image_datasets,save_dir):
     torch.save(model, filepath)
 #========training data ==================
 def main():
-    import pdb
-    #pdb.set_trace()
     in_args = trian_args()
     train_datasets, trainloaders, validloaders,  testloaders=transform_data(in_args.data_dir)
     model = load_pretrained_model(in_args.model_name)
