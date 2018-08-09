@@ -7,7 +7,7 @@ import torch.nn.functional as F
 from torchvision import datasets,models,transforms
 import argparse
 from collections import OrderedDict
-from utils import *
+from utils import label_map,load_pretrained_model,set_device
 def trian_args():
     parser = argparse.ArgumentParser( description='Get Train network parameters' )
     parser.add_argument('data_dir', default='flowers', type=str,
@@ -139,7 +139,7 @@ def transform_data(data_dir='flowers'):
     dataloaders = torch.utils.data.DataLoader(image_datasets, batch_size=64, shuffle=True)
     validloaders = torch.utils.data.DataLoader(valid_datasets, batch_size=32)
     testloaders = torch.utils.data.DataLoader(test_datasets, batch_size=32)
-    return  image_datasets,datasloaders, validloaders,  testloaders
+    return  image_datasets, dataloaders, validloaders,  testloaders
 
 def replace_classifier(model, model_name, hidden_units=4096):
     ''' Create a new classifier to replace one in  pretrained model.
