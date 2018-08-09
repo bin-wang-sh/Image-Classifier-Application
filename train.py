@@ -7,6 +7,7 @@ import torch.nn.functional as F
 from torchvision import datasets,models,transforms
 import argparse
 from collections import OrderedDict
+from utils import *
 def trian_args():
     parser = argparse.ArgumentParser( description='Get Train network parameters' )
     parser.add_argument('data_dir', default='flowers', type=str,
@@ -25,20 +26,6 @@ def trian_args():
                      help="use --gpu to enable GPU process")
     return parser.parse_args()
 
-
-def set_device(model, gpu=False):
-    if gpu :
-        if torch.cuda.is_available():
-            model.cuda()
-            device='cuda'
-        else:
-            print('GPU is not available, CPU is used')
-            model.cpu()
-            device='cpu'
-    else:
-        model.cpu()
-        device='cpu'
-    return device
 
 def train_network(model, dataloaders, validloaders,  epochs, print_every,learning_rate=0.001, gpu=False):
     #define loss function
@@ -132,12 +119,14 @@ def transform_data(data_dir='flowers'):
         transforms.Normalize([0.485, 0.456, 0.406],[0.229, 0.224, 0.225])
     ])
     valid_transforms = transforms.Compose([
-        transforms.RandomResizedCrop(224),
+        transforms.Resize(255),
+        transforms.CenterCrop(224),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406],[0.229, 0.224, 0.225])
     ])
     test_transforms = transforms.Compose([
-        transforms.RandomResizedCrop(224),
+        transforms.Resize(255),
+        transforms.CenterCrop(224),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406],[0.229, 0.224, 0.225])
     ])
@@ -150,28 +139,9 @@ def transform_data(data_dir='flowers'):
     dataloaders = torch.utils.data.DataLoader(image_datasets, batch_size=64, shuffle=True)
     validloaders = torch.utils.data.DataLoader(valid_datasets, batch_size=32)
     testloaders = torch.utils.data.DataLoader(test_datasets, batch_size=32)
-    return  image_datasets,dataloaders, validloaders,  testloaders
+    return  image_datasets,datasloaders, validloaders,  testloaders
 
-
-def load_pretrained_model(model_name='vgg16'):
-    ''' Load a pretrained model based on user input.
-    parameters:
-        model_name, str,  - target network architecture.
-    return:
-        model, models, - Pretrained model.
-    '''
-    # Define models
-    vgg19_bn = models.vgg19_bn(pretrained=True)
-    densenet121 = models.densenet121(pretrained=True)
-    vgg16 = models.vgg16(pretrained=True)
-    model_type = {'vgg19_bn': vgg19_bn, 'densenet121': densenet121, 'vgg16': vgg16}
-    # TODO: Build and train your network
-    model=model_type[model_name]
-    # Freeze parameters so we don't backprop through them
-    for param in model.parameters():
-        param.requires_grad = False
-    return model
-def replace_classifier(model, model_name,hidden_units=4096):
+def replace_classifier(model, model_name, hidden_units=4096):
     ''' Create a new classifier to replace one in  pretrained model.
     parameters:
         model ,Torchvision.Models, - Pretrained model
@@ -215,8 +185,17 @@ def check_accuracy_on_test(model,testloader, gpu=False):
 
 def save_checkpoint(model, model_name,image_datasets,save_dir):
     filepath=save_dir+'/'+model_name+'.pth'
+    input_size = model.classifier[0].in_features
     model.class_to_idx = image_datasets.class_to_idx
-    torch.save(model, filepath)
+    checkpoint = {
+        'architecture': model_name,
+        'input_size': input_size,
+        'output_size': 102,
+        'image_dataset': model.class_to_idx,
+        'classifier': model.classifier,
+        'state_dict': model.state_dict()
+    }
+    torch.save(checkpoint, filepath)
 #========training data ==================
 def main():
     in_args = trian_args()

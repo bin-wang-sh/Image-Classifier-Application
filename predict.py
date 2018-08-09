@@ -7,8 +7,8 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 from torchvision import datasets,models,transforms
 import argparse
-from collections import OrderedDict
 from PIL import Image
+from utils import label_map,load_pretrained_model,set_device
 def predict_args():
     #Basic usage: python predict.py /path/to/image checkpoint
     parser = argparse.ArgumentParser( description='Predict Images' )
@@ -24,15 +24,27 @@ def predict_args():
                      help="use --gpu to enable GPU process")
     return parser.parse_args()
 
-def load_checkpoint(checkpoint):
+def load_checkpoint(checkpoint_name):
     import os
     save_dir='./checkpoint/'
     #if checkpoint is not absolute path, add default path.
-    if os.path.isfile(checkpoint):
-        filepath=checkpoint
+    if os.path.isfile(checkpoint_name):
+        filepath=checkpoint_name
     else:
-        filepath=save_dir+checkpoint
-    return  torch.load(filepath)
+        filepath=save_dir+checkpoint_name
+    checkpoint = torch.load(filepath)
+
+    # The type of architecture is being used for the loaded checkpoint
+    model_name = checkpoint['architecture']
+
+    # Load the appropriate pre-trained model
+    model = load_pretrained_model(model_name)
+
+    # Assign values from the checkpoint to the model
+    model.class_to_idx = checkpoint['image_dataset']
+    model.classifier = checkpoint['classifier']
+    model.load_state_dict(checkpoint['state_dict'])
+    return  model
 
 
 def process_image(image_path):
@@ -111,24 +123,7 @@ def predict(processed, model, topk=5, gpu=False):
     classes_toidx={idx:oid for oid,idx in model.class_to_idx.items()}
     classes_idx=[classes_toidx[i] for i in classes]
     return probs, classes_idx
-def set_device(model, gpu=False):
-    if gpu :
-        if torch.cuda.is_available():
-            model.cuda()
-            device='cuda'
-        else:
-            print('GPU is not available, CPU is used')
-            model.cpu()
-            device='cpu'
-    else:
-        model.cpu()
-        device='cpu'
-    return device
-def label_map(category_names,classidx):
-    with open(category_names, 'r') as f:
-        cat_to_name = json.load(f)
-    classes_name=[cat_to_name[i] for i in classidx]
-    return classes_name
+
 
 def display_predict(probs, classeidx, category_names):
     '''
