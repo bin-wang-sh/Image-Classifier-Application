@@ -150,9 +150,9 @@ def replace_classifier(model, model_name, hidden_units=4096):
     return:
         model ,models,  - Pretrained model with new classifier
     '''
-    #model_input_units={'vgg19_bn':25088, 'densenet121':1024, 'vgg16':25088}
-    #input_units=model_input_units[model_name]
-    input_units = model.classifier[0].in_features
+    model_input_units={'vgg19_bn':25088, 'densenet121':1024, 'vgg16':25088}
+    input_units=model_input_units[model_name]
+    #input_units = model.classifier[0].in_features
     new_classifier = nn.Sequential(OrderedDict([
         ('fc1', nn.Linear(input_units, hidden_units)),
         ('relu1', nn.ReLU()),
