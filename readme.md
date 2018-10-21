@@ -10,7 +10,7 @@ I use python 3.5 to create this project and the libraries I used are:
  - torchvision
  - PIL
  - json
- - collections 
+ - collections
 
 
 ## 2. Project Motivation
@@ -40,4 +40,4 @@ I use the learning transfer technology to do the following step:
 When training with GPU I only update the weights of the feed-forward network. I  get the validation accuracy above 82% result. I try different hyperparameters (learning rate, units in the classifier, epochs, etc) to find the best model. Save those hyperparameters to use as default values in the next.
 
 ## 5. Licensing, Author, Acknowledgements
-    This work is licensed under a Creative Commons  Attribution-NonCommercial-NoDerivatives 4.0 International License. Please refer to Udacity Terms of Service for further information.
+    This work is licensed under a [Creative Commons  Attribution-NonCommercial-NoDerivatives 4.0 International License](http://creativecommons.org/licenses/by-nc-nd/4.0/). Please refer to [Udacity Terms of Service](https://www.udacity.com/legal) for further information.
